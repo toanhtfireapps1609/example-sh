@@ -8,17 +8,21 @@
 
 namespace App\SpfApi;
 
-
 use GuzzleHttp\Client;
 
 class AuthApi
 {
 
+    protected $clientId;
+    protected $clientSecret;
+    private $client;
 
     public function __construct()
     {
-        $this->clientSecret = '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';
-        $this->_spfApiKey = '6f3608e38b470cab16c86b3b68f9243a';
+        $this->client = new Client();
+        $this->clientId = config('shopify.spf_api_key');
+        $this->clientSecret = config('shopify.spf_secret_key');
+
     }
 
 
@@ -76,7 +80,7 @@ class AuthApi
      */
     function urlInstall(string $shop_domain): string
     {
-        $client_id = $this->_spfApiKey;
+        $client_id = $this->clientId;
         $scopes = implode(',', config('shopify.scope'));
         $redirect_uri = config('shopify.redirect_url');
 
@@ -90,19 +94,35 @@ class AuthApi
     function getAccessToken(string $shop, string $code) : array
     {
 
-        $client = new Client();
         try{
-            $response = $client->request('POST', "https://{$shop}/admin/oauth/access_token.json",
+            $response = $this->client->request('POST', "https://{$shop}/admin/oauth/access_token.json",
             [
                 'headers' => [
                     'Content-Type' => 'application/json'
                 ],
                 'body' => json_encode([
                     'code' => $code,
-                    'client_id' => $this->_spfApiKey,
-                    'client_secret' => $this->_spfSecretKey
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret
                 ])
             ]);
+            return ['status' => true, 'data' => json_decode($response->getBody()->getContents(), true)];
+        } catch (\Exception $exception) {
+            return ['status' => false, 'message' => $exception->getMessage()];
+        }
+    }
+
+
+    function getProducts(string $shop, string $access_token): array
+    {
+        try {
+            $response = $this->client->request('GET', "https://{$shop}/admin/products.json",
+                [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'X-Shopify-Access-Token' => $access_token,
+                    ],
+                ]);
             return ['status' => true, 'data' => json_decode($response->getBody()->getContents(), true)];
         } catch (\Exception $exception) {
             return ['status' => false, 'message' => $exception->getMessage()];

@@ -21,14 +21,16 @@ Route::group(['prefix' => 'example-app', 'as' => 'example-app.'], function () {
     Route::get('/', function () {
         return view('example.index');
     })->name('index');
-
+    Route::get('/', 'ExampleAppController@index')->name('index');
     Route::post('/login-shop', 'ExampleAppController@loginShop')->name('login-shop');
+    Route::get('/products', 'ExampleAppController@products')->name('products.form');
+
+    Route::get('/message/{product}', 'ExampleAppController@getFormMessage')->name('message.form');
+    Route::post('/message', 'ExampleAppController@postMessage')->name('message');
+});
+Route::group(['prefix' => 'store-front', 'middleware' => 'cors', 'as' => 'store-front.'], function (){
+    Route::get('/message/{product_id}', 'StoreFrontController@getMessages');
 });
 
 
-Route::get('/auth', function (Request $request) {
-    $data = $request->all();
-    $verify = new AuthApi();
-    $result = $verify->verifyRequest($data);
-    dd($result);
-});
+Route::get('/auth', 'ExampleAppController@authRedirect')->name('auth.redirect');
