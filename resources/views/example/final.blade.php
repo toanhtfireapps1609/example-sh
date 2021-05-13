@@ -7,6 +7,7 @@
         </div>
         <div class="row">
             <span>Domain shop: {{ $shop}}</span>
+            <span><a href="{{route('example-app.products.form')}}">View products </a></span>
         </div>
     </div>
 @endsection
